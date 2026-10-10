@@ -42,9 +42,6 @@ public class PlayerController {
     private Button helpButton;
 
     @FXML
-    private Button trophiesButton;
-
-    @FXML
     private Button gamesButton;
 
     @FXML

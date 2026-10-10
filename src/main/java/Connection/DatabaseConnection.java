@@ -21,8 +21,7 @@ public class DatabaseConnection {
 
             } catch (ClassNotFoundException e)
             {
-                e.printStackTrace();
-                throw new SQLException("Driverul JDBC not found", e);
+                throw new SQLException("JDBC driver not found", e);
             }
         }
         return connection;
@@ -32,32 +31,6 @@ public class DatabaseConnection {
     {
         if (connection != null && !connection.isClosed()) {
             connection.close();
-        }
-    }
-
-
-
-    public static void main(String[] args) {
-        Connection connection = null;
-
-        try {
-            connection = DatabaseConnection.getConnection();
-
-            if (connection != null && !connection.isClosed()) {
-                System.out.println("Success!");
-            } else {
-                System.out.println("Failed");
-            }
-        }
-        catch (SQLException e) {
-            e.printStackTrace();
-        }
-        finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

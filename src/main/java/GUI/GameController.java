@@ -1,13 +1,11 @@
 package GUI;
 
 import BusinessLogic.GameLogic;
-import Model.Game;
 import Model.Player;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
 
 import java.io.IOException;
 
