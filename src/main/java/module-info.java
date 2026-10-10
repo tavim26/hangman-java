@@ -1,10 +1,10 @@
-module com.example.hangman {
+module io.github.tavim26.hangman {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.sql;
 
-    opens GUI to javafx.fxml;
-    opens Model to javafx.base;
+    opens io.github.tavim26.hangman.controller to javafx.fxml;
+    opens io.github.tavim26.hangman.model to javafx.base;
 
-    exports GUI;
+    exports io.github.tavim26.hangman;
 }
