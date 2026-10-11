@@ -7,7 +7,7 @@ import io.github.tavim26.hangman.model.HangmanGame;
 import io.github.tavim26.hangman.model.Player;
 import io.github.tavim26.hangman.service.GameService;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 
@@ -27,10 +27,19 @@ public class GameController
     private Text lettersField;
     @FXML
     private TextField letterField;
+    @FXML
+    private Button okButton;
 
     private final GameService gameService = new GameService();
     private Player player;
     private HangmanGame game;
+
+    @FXML
+    private void initialize()
+    {
+        // Pressing Enter in the letter field works like clicking OK
+        letterField.setOnAction(event -> okButton.fire());
+    }
 
     public void startGame(Player player, Difficulty difficulty, Category category)
     {
@@ -75,24 +84,17 @@ public class GameController
         }
         catch (SQLException e)
         {
-            e.printStackTrace();
+            Alerts.databaseError(e);
         }
 
-        Alert alert;
         if (game.isWon())
         {
-            alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Congratulations!");
-            alert.setHeaderText("You guessed the word!");
+            Alerts.info("Congratulations!", "You guessed the word: " + game.getWord());
         }
         else
         {
-            alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Game Over");
-            alert.setHeaderText("You've run out of tries!");
+            Alerts.info("Game over", "You've run out of tries! The word was: " + game.getWord());
         }
-        alert.setContentText("The word was: " + game.getWord());
-        alert.showAndWait();
 
         DashboardController dashboard = SceneManager.show(View.DASHBOARD);
         dashboard.setPlayer(player);

@@ -30,6 +30,7 @@ public class GameService
         gameDao.addGame(new GameRecord(
                 player.getPlayerID(),
                 game.getDifficulty().getLabel(),
+                game.getCategory().getLabel(),
                 game.getWord(),
                 game.getRemainingTries(),
                 status

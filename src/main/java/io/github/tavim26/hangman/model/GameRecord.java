@@ -5,25 +5,29 @@ public class GameRecord
 {
     private final int gameID;
     private final int playerID;
-    private final String gameMode;
+    private final String difficulty;
+    private final String category;
     private final String word;
     private final int remainingAttempts;
     private final String status;
 
-    public GameRecord(int gameID, int playerID, String gameMode, String word, int remainingAttempts, String status)
+    public GameRecord(int gameID, int playerID, String difficulty, String category,
+                      String word, int remainingAttempts, String status)
     {
         this.gameID = gameID;
         this.playerID = playerID;
-        this.gameMode = gameMode;
+        this.difficulty = difficulty;
+        this.category = category;
         this.word = word;
         this.remainingAttempts = remainingAttempts;
         this.status = status;
     }
 
     /** A new record that has not been saved to the database yet. */
-    public GameRecord(int playerID, String gameMode, String word, int remainingAttempts, String status)
+    public GameRecord(int playerID, String difficulty, String category,
+                      String word, int remainingAttempts, String status)
     {
-        this(0, playerID, gameMode, word, remainingAttempts, status);
+        this(0, playerID, difficulty, category, word, remainingAttempts, status);
     }
 
     public int getGameID()
@@ -36,9 +40,14 @@ public class GameRecord
         return playerID;
     }
 
-    public String getGameMode()
+    public String getDifficulty()
     {
-        return gameMode;
+        return difficulty;
+    }
+
+    public String getCategory()
+    {
+        return category;
     }
 
     public String getWord()

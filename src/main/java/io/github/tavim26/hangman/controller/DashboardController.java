@@ -7,8 +7,6 @@ import io.github.tavim26.hangman.model.GameRecord;
 import io.github.tavim26.hangman.model.Player;
 import io.github.tavim26.hangman.service.GameService;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableColumn;
@@ -18,8 +16,6 @@ import javafx.scene.layout.AnchorPane;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Optional;
 
 public class DashboardController
 {
@@ -59,11 +55,22 @@ public class DashboardController
     private final GameService gameService = new GameService();
     private Player currentPlayer;
 
+    @FXML
+    private void initialize()
+    {
+        gamesTable.getColumns().clear();
+        gamesTable.getColumns().add(column("Difficulty", "difficulty"));
+        gamesTable.getColumns().add(column("Category", "category"));
+        gamesTable.getColumns().add(column("Word", "word"));
+        gamesTable.getColumns().add(column("Tries left", "remainingAttempts"));
+        gamesTable.getColumns().add(column("Result", "status"));
+    }
+
     public void setPlayer(Player player)
     {
         this.currentPlayer = player;
         usernameLabel.setText(player.getUsername());
-        populateGamesTable();
+        loadGamesHistory();
     }
 
     @FXML
@@ -92,7 +99,7 @@ public class DashboardController
 
         if (difficulty == null || category == null)
         {
-            showError("Please select both difficulty level and category.");
+            Alerts.error("Missing selection", "Please select both a difficulty level and a category.");
             return;
         }
 
@@ -103,14 +110,8 @@ public class DashboardController
     @FXML
     private void clickLogOut() throws IOException
     {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Confirm Logout");
-        alert.setHeaderText("Are you sure you want to log out?");
-        alert.setContentText("You will be returned to the sign up screen.");
-
-        Optional<ButtonType> result = alert.showAndWait();
-
-        if (result.isPresent() && result.get() == ButtonType.OK)
+        if (Alerts.confirm("Confirm Logout", "Are you sure you want to log out?",
+                "You will be returned to the sign up screen."))
         {
             SceneManager.show(View.LOGIN);
         }
@@ -169,26 +170,15 @@ public class DashboardController
         return null;
     }
 
-    private void populateGamesTable()
+    private void loadGamesHistory()
     {
-        gamesTable.getColumns().clear();
-        gamesTable.getItems().clear();
-
-        gamesTable.getColumns().add(column("GameID", "gameID"));
-        gamesTable.getColumns().add(column("PlayerID", "playerID"));
-        gamesTable.getColumns().add(column("GameMode", "gameMode"));
-        gamesTable.getColumns().add(column("Word", "word"));
-        gamesTable.getColumns().add(column("RemainingAttempts", "remainingAttempts"));
-        gamesTable.getColumns().add(column("Status", "status"));
-
         try
         {
-            List<GameRecord> games = gameService.getHistory(currentPlayer);
-            gamesTable.getItems().setAll(games);
+            gamesTable.getItems().setAll(gameService.getHistory(currentPlayer));
         }
         catch (SQLException e)
         {
-            e.printStackTrace();
+            Alerts.databaseError(e);
         }
     }
 
@@ -197,14 +187,5 @@ public class DashboardController
         TableColumn<GameRecord, Object> column = new TableColumn<>(title);
         column.setCellValueFactory(new PropertyValueFactory<>(property));
         return column;
-    }
-
-    private void showError(String message)
-    {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 }

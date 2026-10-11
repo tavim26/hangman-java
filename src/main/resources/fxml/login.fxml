@@ -40,7 +40,7 @@
                         </PasswordField>
                      </children>
                   </VBox>
-                  <CheckBox fx:id="showPasswordBox1" layoutX="35.0" layoutY="220.0" mnemonicParsing="false" onAction="#clickShowPassword1" text="Show password">
+                  <CheckBox fx:id="showSignUpPasswordBox" layoutX="35.0" layoutY="220.0" mnemonicParsing="false" onAction="#clickShowSignUpPassword" text="Show password">
                      <font>
                         <Font size="12.0" />
                      </font>

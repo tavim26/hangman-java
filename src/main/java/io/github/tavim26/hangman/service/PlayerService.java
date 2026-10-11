@@ -8,24 +8,28 @@ import java.util.regex.Pattern;
 
 public class PlayerService
 {
+    public static final int MAX_USERNAME_LENGTH = 50;
+    public static final int MAX_EMAIL_LENGTH = 100;
+    public static final int MIN_PASSWORD_LENGTH = 6;
+
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
 
     private final PlayerDao playerDao = new PlayerDao();
 
-    public boolean isValidEmail(String email)
-    {
-        return email != null && EMAIL_PATTERN.matcher(email).matches();
-    }
-
     public boolean isValidUsername(String username)
     {
-        return username != null;
+        return username != null && !username.isBlank() && username.length() <= MAX_USERNAME_LENGTH;
+    }
+
+    public boolean isValidEmail(String email)
+    {
+        return email != null && email.length() <= MAX_EMAIL_LENGTH && EMAIL_PATTERN.matcher(email).matches();
     }
 
     public boolean isValidPassword(String password)
     {
-        return password != null;
+        return password != null && password.length() >= MIN_PASSWORD_LENGTH;
     }
 
     public boolean isUsernameTaken(String username) throws SQLException

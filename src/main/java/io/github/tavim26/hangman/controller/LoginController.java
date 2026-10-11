@@ -4,10 +4,11 @@ import io.github.tavim26.hangman.controller.SceneManager.View;
 import io.github.tavim26.hangman.model.Player;
 import io.github.tavim26.hangman.service.PlayerService;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -20,6 +21,8 @@ public class LoginController
     private TextField usernameField;
     @FXML
     private PasswordField passwordField;
+    @FXML
+    private CheckBox showPasswordBox;
 
     @FXML
     private AnchorPane signUpPane;
@@ -31,94 +34,133 @@ public class LoginController
     private PasswordField signUpPasswordField;
     @FXML
     private PasswordField repeatPasswordField;
+    @FXML
+    private CheckBox showSignUpPasswordBox;
 
     private final PlayerService playerService = new PlayerService();
+
+    // Plain text fields shown instead of the password fields when "Show password" is checked
+    private TextField visiblePasswordField;
+    private TextField visibleSignUpPasswordField;
+    private TextField visibleRepeatPasswordField;
+
+    @FXML
+    private void initialize()
+    {
+        visiblePasswordField = createVisibleCopy(passwordField);
+        visibleSignUpPasswordField = createVisibleCopy(signUpPasswordField);
+        visibleRepeatPasswordField = createVisibleCopy(repeatPasswordField);
+    }
 
     @FXML
     private void clickShowPassword()
     {
+        setPasswordVisible(passwordField, visiblePasswordField, showPasswordBox.isSelected());
     }
 
     @FXML
-    private void clickShowPassword1()
+    private void clickShowSignUpPassword()
     {
+        boolean visible = showSignUpPasswordBox.isSelected();
+        setPasswordVisible(signUpPasswordField, visibleSignUpPasswordField, visible);
+        setPasswordVisible(repeatPasswordField, visibleRepeatPasswordField, visible);
     }
 
     @FXML
-    private void clickSignUp() throws SQLException
+    private void clickSignUp()
     {
-        String username = signUpUsernameField.getText();
-        String email = emailField.getText();
+        String username = signUpUsernameField.getText().trim();
+        String email = emailField.getText().trim();
         String password = signUpPasswordField.getText();
         String repeatPassword = repeatPasswordField.getText();
 
-        if (!password.equals(repeatPassword))
-        {
-            showAlert(Alert.AlertType.ERROR, "Passwords do not match", "Passwords do not match");
-            return;
-        }
-
         if (!playerService.isValidUsername(username))
         {
-            showAlert(Alert.AlertType.ERROR, "Invalid username", "Please enter a valid username");
-            return;
-        }
-
-        if (!playerService.isValidPassword(password))
-        {
-            showAlert(Alert.AlertType.ERROR, "Invalid password", "Please enter your password");
+            Alerts.error("Invalid username", "Please enter a username of at most "
+                    + PlayerService.MAX_USERNAME_LENGTH + " characters.");
             return;
         }
 
         if (!playerService.isValidEmail(email))
         {
-            showAlert(Alert.AlertType.ERROR, "Invalid email", "Please enter a valid email address");
-            return;
-        }
-
-        if (playerService.isUsernameTaken(username))
-        {
-            showAlert(Alert.AlertType.ERROR, "Username Already Exists", "A player with this username already exists");
-            return;
-        }
-
-        if (playerService.isEmailTaken(email))
-        {
-            showAlert(Alert.AlertType.ERROR, "Email Already Exists", "A player with this email already exists");
-            return;
-        }
-
-        playerService.register(new Player(username, email, password));
-        showAlert(Alert.AlertType.CONFIRMATION, "Player Added", "Player added successfully");
-    }
-
-    @FXML
-    private void clickLogIn() throws SQLException, IOException
-    {
-        String username = usernameField.getText();
-        String password = passwordField.getText();
-
-        if (!playerService.isValidUsername(username))
-        {
-            showAlert(Alert.AlertType.ERROR, "Invalid username", "Please enter a valid username");
+            Alerts.error("Invalid email", "Please enter a valid email address.");
             return;
         }
 
         if (!playerService.isValidPassword(password))
         {
-            showAlert(Alert.AlertType.ERROR, "Invalid password", "Please enter your password");
+            Alerts.error("Invalid password", "The password must have at least "
+                    + PlayerService.MIN_PASSWORD_LENGTH + " characters.");
             return;
         }
 
-        Player player = playerService.login(username, password);
+        if (!password.equals(repeatPassword))
+        {
+            Alerts.error("Passwords do not match", "Please type the same password in both fields.");
+            return;
+        }
+
+        try
+        {
+            if (playerService.isUsernameTaken(username))
+            {
+                Alerts.error("Username already exists", "A player with this username already exists.");
+                return;
+            }
+
+            if (playerService.isEmailTaken(email))
+            {
+                Alerts.error("Email already exists", "A player with this email already exists.");
+                return;
+            }
+
+            playerService.register(new Player(username, email, password));
+        }
+        catch (SQLException e)
+        {
+            Alerts.databaseError(e);
+            return;
+        }
+
+        Alerts.info("Account created", "Your account was created. You can now log in.");
+
+        signUpUsernameField.clear();
+        emailField.clear();
+        signUpPasswordField.clear();
+        repeatPasswordField.clear();
+
+        usernameField.setText(username);
+        clickLoginAccount();
+    }
+
+    @FXML
+    private void clickLogIn() throws IOException
+    {
+        String username = usernameField.getText().trim();
+        String password = passwordField.getText();
+
+        if (username.isEmpty() || password.isEmpty())
+        {
+            Alerts.error("Missing credentials", "Please enter your username and password.");
+            return;
+        }
+
+        Player player;
+        try
+        {
+            player = playerService.login(username, password);
+        }
+        catch (SQLException e)
+        {
+            Alerts.databaseError(e);
+            return;
+        }
 
         if (player == null)
         {
-            showAlert(Alert.AlertType.ERROR, "Player does not exist", "Username and password do not match");
+            Alerts.error("Log in failed", "Username and password do not match.");
             return;
         }
-
-        showAlert(Alert.AlertType.CONFIRMATION, "Log In Successful", "Log In Successful");
 
         DashboardController dashboard = SceneManager.show(View.DASHBOARD);
         dashboard.setPlayer(player);
@@ -138,12 +180,30 @@ public class LoginController
         signUpPane.setVisible(true);
     }
 
-    private void showAlert(Alert.AlertType alertType, String title, String message)
+    /**
+     * Creates a plain text field that shares its text with the given password field
+     * and sits next to it in the layout, hidden until "Show password" is checked.
+     */
+    private TextField createVisibleCopy(PasswordField passwordField)
     {
-        Alert alert = new Alert(alertType);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        TextField copy = new TextField();
+        copy.setPromptText(passwordField.getPromptText());
+        copy.setFont(passwordField.getFont());
+        copy.setPrefSize(passwordField.getPrefWidth(), passwordField.getPrefHeight());
+        copy.textProperty().bindBidirectional(passwordField.textProperty());
+
+        Pane parent = (Pane) passwordField.getParent();
+        parent.getChildren().add(parent.getChildren().indexOf(passwordField) + 1, copy);
+
+        setPasswordVisible(passwordField, copy, false);
+        return copy;
+    }
+
+    private void setPasswordVisible(PasswordField passwordField, TextField visibleCopy, boolean visible)
+    {
+        passwordField.setVisible(!visible);
+        passwordField.setManaged(!visible);
+        visibleCopy.setVisible(visible);
+        visibleCopy.setManaged(visible);
     }
 }
