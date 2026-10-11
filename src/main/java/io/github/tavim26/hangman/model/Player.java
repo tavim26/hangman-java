@@ -5,20 +5,20 @@ public class Player
     private final int playerID;
     private final String username;
     private final String email;
-    private final String password;
+    private final String passwordHash;
 
-    public Player(int playerID, String username, String email, String password)
+    public Player(int playerID, String username, String email, String passwordHash)
     {
         this.playerID = playerID;
         this.username = username;
         this.email = email;
-        this.password = password;
+        this.passwordHash = passwordHash;
     }
 
     /** A new player that has not been saved to the database yet. */
-    public Player(String username, String email, String password)
+    public Player(String username, String email, String passwordHash)
     {
-        this(0, username, email, password);
+        this(0, username, email, passwordHash);
     }
 
     public int getPlayerID()
@@ -36,8 +36,8 @@ public class Player
         return email;
     }
 
-    public String getPassword()
+    public String getPasswordHash()
     {
-        return password;
+        return passwordHash;
     }
 }

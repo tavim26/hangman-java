@@ -45,11 +45,18 @@ public class PlayerService
     /** Returns the matching player, or null if the credentials are wrong. */
     public Player login(String username, String password) throws SQLException
     {
-        return playerDao.findByUsernameAndPassword(username, password);
+        Player player = playerDao.findByUsername(username);
+
+        if (player == null || !PasswordHasher.verify(password, player.getPasswordHash()))
+        {
+            return null;
+        }
+        return player;
     }
 
-    public void register(Player player) throws SQLException
+    /** Saves a new player. Only a salted hash of the password is stored. */
+    public void register(String username, String email, String password) throws SQLException
     {
-        playerDao.addPlayer(player);
+        playerDao.addPlayer(new Player(username, email, PasswordHasher.hash(password)));
     }
 }

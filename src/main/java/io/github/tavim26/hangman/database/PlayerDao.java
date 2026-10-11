@@ -11,27 +11,27 @@ public class PlayerDao
 {
     public void addPlayer(Player player) throws SQLException
     {
-        String query = "INSERT INTO player (Username, Email, Password) VALUES (?, ?, ?)";
+        String query = "INSERT INTO player (Username, Email, PasswordHash) VALUES (?, ?, ?)";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query))
         {
             stmt.setString(1, player.getUsername());
             stmt.setString(2, player.getEmail());
-            stmt.setString(3, player.getPassword());
+            stmt.setString(3, player.getPasswordHash());
             stmt.executeUpdate();
         }
     }
 
-    public Player findByUsernameAndPassword(String username, String password) throws SQLException
+    /** Returns the player with the given username, or null if there is none. */
+    public Player findByUsername(String username) throws SQLException
     {
-        String query = "SELECT * FROM player WHERE Username = ? AND Password = ?";
+        String query = "SELECT * FROM player WHERE Username = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query))
         {
             stmt.setString(1, username);
-            stmt.setString(2, password);
 
             try (ResultSet rs = stmt.executeQuery())
             {
@@ -70,7 +70,7 @@ public class PlayerDao
                 rs.getInt("PlayerID"),
                 rs.getString("Username"),
                 rs.getString("Email"),
-                rs.getString("Password")
+                rs.getString("PasswordHash")
         );
     }
 }

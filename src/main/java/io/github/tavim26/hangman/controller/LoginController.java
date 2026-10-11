@@ -114,7 +114,7 @@ public class LoginController
                 return;
             }
 
-            playerService.register(new Player(username, email, password));
+            playerService.register(username, email, password);
         }
         catch (SQLException e)
         {
